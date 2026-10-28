@@ -7,7 +7,7 @@
 // =====================================================================
 window.APP = {
   NOME: 'CRS',                          // <- 1) nome da comunidade
-  SUPABASE_URL: 'https://ivvizhzzxlqzbvcdjvlh.supabase.co/rest/v1/', // <- 2) Supabase > Project Settings > API > Project URL
+  SUPABASE_URL: 'SUPABASE_URL: 'https://ivvizhzzxlqzbvcdjvlh.supabase.co',, // <- 2) Supabase > Project Settings > API > Project URL
   SUPABASE_CHAVE_PUBLICA: 'sb_publishable_Y8mQ5JiIIbFHTa9UXyonIQ_h8cmFqfb', // <- 3) chave publishable / anon public
   TERMOS_VERSAO: '1.0'
 };
