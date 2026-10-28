@@ -1,4 +1,4 @@
-/* estilo.css — v1.0 — visual padrão de todas as telas internas */
+/* estilo.css — v1.1 — visual padrão de todas as telas internas */
 :root{
   --fundo:#0f0d12; --cartao:#19161d; --cartao2:#221e27; --linha:#2f2a35;
   --texto:#f3eef5; --suave:#a79fae; --rosa:#d6336c; --rosa2:#ff5c8d; --ok:#2fbf71; --erro:#ff6b6b; --aviso:#f0b429;
@@ -45,3 +45,41 @@ select,input[type=text]{width:100%;background:var(--cartao2);border:1px solid va
 .acoes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 footer{margin-top:24px;color:#6f6776;font-size:11px;text-align:center}
 footer a{color:#8d8594}
+
+/* ---------- v1.1: menu, membros, perfil, fotos ---------- */
+.menu{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.menu a.ativo{border-color:var(--rosa2);color:var(--texto)}
+.contador{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:var(--rosa);color:#fff;font-size:11px;line-height:18px;text-align:center;margin-left:4px}
+.filtros{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.membros{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.membro{background:var(--cartao);border:1px solid var(--linha);border-radius:14px;overflow:hidden;text-decoration:none;color:var(--texto);display:block}
+.membro .capa{aspect-ratio:1/1;background:var(--cartao2);display:flex;align-items:center;justify-content:center;font-size:42px;color:var(--suave);overflow:hidden}
+.membro .capa canvas{width:100%;height:100%;object-fit:cover;display:block}
+.membro .info{padding:10px 12px}
+.membro b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.membro span{display:block;color:var(--suave);font-size:12px;margin-top:2px}
+.cabeca{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.avatar{width:110px;height:110px;border-radius:50%;overflow:hidden;background:var(--cartao2);display:flex;align-items:center;justify-content:center;font-size:44px;color:var(--suave);flex:0 0 110px}
+.avatar canvas{width:100%;height:100%;display:block}
+.fotos-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.fotos-grade .item{position:relative;border-radius:10px;overflow:hidden;background:var(--cartao2);aspect-ratio:1/1;cursor:pointer}
+.fotos-grade .item canvas{width:100%;height:100%;display:block}
+.fotos-grade .item .etiqueta{position:absolute;left:6px;top:6px;font-size:11px;background:rgba(0,0,0,.6);padding:2px 7px;border-radius:999px}
+.foto-protegida{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.visor{position:fixed;inset:0;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+.visor canvas{max-width:100%;max-height:100%;border-radius:8px}
+.visor .fechar{position:absolute;top:14px;right:14px;background:var(--cartao);border:1px solid var(--linha);color:var(--texto);border-radius:10px;padding:8px 14px;cursor:pointer}
+.linha-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.linha-acoes .btn{width:auto;flex:1 1 140px;padding:11px 14px;font-size:14px}
+textarea{width:100%;min-height:110px;background:var(--cartao2);border:1px solid var(--linha);color:var(--texto);border-radius:10px;padding:11px 12px;font:14px/1.5 Inter,sans-serif;resize:vertical}
+label.campo{display:block;font-size:13px;color:var(--suave);margin:12px 0 6px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--linha);background:var(--cartao2);border-radius:999px;padding:8px 14px;cursor:pointer;font-size:13px;user-select:none}
+.chip.sel{border-color:var(--rosa2);background:#3a1426}
+.lista-pessoas{display:flex;flex-direction:column;gap:8px}
+.pessoa{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--cartao2);border:1px solid var(--linha);border-radius:12px;padding:10px 12px}
+.pessoa a{color:var(--texto);font-weight:600;text-decoration:none}
+.pessoa .botoes{display:flex;gap:6px}
+.pessoa button{border:1px solid var(--linha);background:var(--cartao);color:var(--texto);border-radius:9px;padding:7px 10px;font:13px Inter,sans-serif;cursor:pointer}
+.pessoa button.sim{background:var(--ok);border-color:var(--ok);color:#06150d}
+@media (max-width:560px){ .topo{flex-wrap:wrap;gap:8px} .filtros{grid-template-columns:1fr} }
