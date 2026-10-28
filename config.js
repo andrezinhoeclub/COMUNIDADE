@@ -6,8 +6,8 @@
 //  NUNCA cole aqui a chave sb_secret / service_role.
 // =====================================================================
 window.APP = {
-  NOME: 'NOME DO APP',                          // <- 1) nome da comunidade
-  SUPABASE_URL: 'https://SEU-PROJETO.supabase.co', // <- 2) Supabase > Project Settings > API > Project URL
-  SUPABASE_CHAVE_PUBLICA: 'COLE_A_CHAVE_PUBLISHABLE_AQUI', // <- 3) chave publishable / anon public
+  NOME: 'CRS',                          // <- 1) nome da comunidade
+  SUPABASE_URL: 'https://ivvizhzzxlqzbvcdjvlh.supabase.co/rest/v1/', // <- 2) Supabase > Project Settings > API > Project URL
+  SUPABASE_CHAVE_PUBLICA: 'sb_publishable_Y8mQ5JiIIbFHTa9UXyonIQ_h8cmFqfb', // <- 3) chave publishable / anon public
   TERMOS_VERSAO: '1.0'
 };
