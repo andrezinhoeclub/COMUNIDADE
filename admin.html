@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; connect-src https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>Administração</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="estilo.css?v=1.0">
+</head>
+<body>
+
+<div class="topo">
+  <div class="logo"><span data-nome-app>…</span> · Admin</div>
+  <div>
+    <a href="inicio.html">Início</a>
+    <button type="button" id="bSair">Sair</button>
+  </div>
+</div>
+
+<main>
+  <div class="cartao" id="carregando"><p class="suave">Carregando…</p></div>
+  <div class="cartao oculto" id="negado"><h1>Acesso negado</h1><p>Esta área é só da administração.</p></div>
+
+  <div class="oculto" id="painel">
+    <div class="cartao">
+      <h1>Verificações para analisar <span class="selo" id="qtd">0</span></h1>
+      <p class="suave">Confira: o <b>código</b> no papel é igual ao da tela? O <b>rosto</b> da selfie bate com o documento? A <b>data de nascimento</b> do documento é a mesma do cadastro e dá 18 anos ou mais? Se for casal, aparecem <b>os dois</b> na selfie?</p>
+      <button class="btn secundario" id="bAtualizar" type="button">Atualizar lista</button>
+    </div>
+    <div id="lista"></div>
+    <div class="cartao oculto" id="vazio"><p>Nenhuma verificação esperando. ✓</p></div>
+  </div>
+</main>
+
+<template id="modelo">
+  <div class="cartao">
+    <h2><span class="apelido"></span> <span class="selo tipo"></span></h2>
+    <div class="dados">
+      <b>Código</b><span class="codigoTxt" style="font:700 20px ui-monospace,Menlo,monospace;letter-spacing:3px"></span>
+      <b>Nascimento</b><span class="nasc1"></span>
+      <b class="r2">Nascimento (2)</b><span class="nasc2 r2"></span>
+      <b>Cidade</b><span class="cidade"></span>
+      <b>Enviado em</b><span class="enviado"></span>
+    </div>
+    <div class="grade fotos"></div>
+    <p class="suave">Toque na foto para abrir em tamanho grande. Os links valem por 10 minutos.</p>
+    <div class="acoes">
+      <button class="btn verde aprovar" type="button">✓ Aprovar</button>
+      <button class="btn vermelho recusar" type="button">✕ Recusar</button>
+    </div>
+    <div class="caixaRecusa oculto" style="margin-top:12px">
+      <select class="motivo">
+        <option value="">Escolha o motivo…</option>
+        <option>O código não aparece ou está diferente</option>
+        <option>Foto escura, cortada ou ilegível</option>
+        <option>O rosto não aparece</option>
+        <option>Casal: os dois precisam aparecer na selfie</option>
+        <option>Documento não confere com o cadastro</option>
+        <option value="BANIR:Menor de idade">Menor de idade (BANIR)</option>
+        <option value="BANIR:Documento falso ou de outra pessoa">Documento falso ou de outra pessoa (BANIR)</option>
+      </select>
+      <button class="btn vermelho confirmar" type="button" style="margin-top:10px">Confirmar recusa</button>
+    </div>
+    <div class="msg resultado"></div>
+  </div>
+</template>
+
+<footer>admin.html v1.0</footer>
+
+<script src="config.js?v=1.1"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
+<script src="base.js?v=1.0"></script>
+<script src="admin.js?v=1.0"></script>
+</body>
+</html>
