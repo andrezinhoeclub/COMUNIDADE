@@ -6,35 +6,51 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; connect-src https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
-<title>Início</title>
+<title>Membros</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="estilo.css?v=1.0">
+<link rel="stylesheet" href="estilo.css?v=1.1">
 </head>
 <body>
 
 <div class="topo">
   <div class="logo" data-nome-app>…</div>
-  <div>
+  <nav class="menu">
+    <a href="inicio.html">Membros</a>
+    <a href="meu-perfil.html">Meu perfil<span id="cPedidos"></span></a>
     <a href="admin.html" id="linkAdmin" class="oculto">Admin</a>
     <button type="button" id="bSair">Sair</button>
-  </div>
+  </nav>
 </div>
 
-<main class="estreito">
+<main>
   <div class="cartao" id="carregando"><p class="suave">Carregando…</p></div>
-  <div class="cartao oculto" id="tela">
-    <h1>Olá, <span id="txtApelido"></span> <span class="selo ok">✓ verificado</span></h1>
-    <p id="txtTipo" class="suave"></p>
-    <p>Seu perfil está aprovado. As áreas da comunidade (perfil, fotos, feed, chat, radar e grupos) estão sendo construídas e vão aparecer aqui.</p>
-    <a class="btn secundario" href="regras.html">Ler as regras da comunidade</a>
+
+  <div class="oculto" id="tela">
+    <div class="cartao">
+      <h1>Olá, <span id="txtApelido"></span> <span class="selo ok">✓ verificado</span></h1>
+      <p class="suave" id="txtAviso"></p>
+      <div class="filtros">
+        <select id="fTipo">
+          <option value="">Todos os perfis</option>
+          <option value="casal">Casais</option>
+          <option value="solteira">Solteiras</option>
+          <option value="solteiro">Solteiros</option>
+        </select>
+        <select id="fUf"><option value="">Todos os estados</option></select>
+      </div>
+    </div>
+
+    <div class="membros" id="lista"></div>
+    <div class="cartao oculto" id="vazio" style="margin-top:12px"><p>Ninguém encontrado com esses filtros.</p></div>
+    <button class="btn secundario oculto" id="bMais" type="button" style="margin-top:14px">Carregar mais</button>
   </div>
 </main>
 
-<footer><a href="regras.html">Regras e privacidade</a> · inicio.html v1.0</footer>
+<footer><a href="regras.html">Regras e privacidade</a> · inicio.html v1.1</footer>
 
 <script src="config.js?v=1.1"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
-<script src="base.js?v=1.0"></script>
-<script src="inicio.js?v=1.0"></script>
+<script src="base.js?v=1.1"></script>
+<script src="inicio.js?v=1.1"></script>
 </body>
 </html>
