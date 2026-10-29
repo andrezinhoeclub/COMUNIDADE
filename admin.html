@@ -8,23 +8,66 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; connect-src https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
 <title>Administração</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="estilo.css?v=1.0">
+<link rel="stylesheet" href="estilo.css?v=2.0">
 </head>
 <body>
 
-<div class="topo">
-  <div class="logo"><span data-nome-app>…</span> · Admin</div>
-  <div>
-    <a href="inicio.html">Início</a>
-    <button type="button" id="bSair">Sair</button>
-  </div>
-</div>
 
 <main>
   <div class="cartao" id="carregando"><p class="suave">Carregando…</p></div>
   <div class="cartao oculto" id="negado"><h1>Acesso negado</h1><p>Esta área é só da administração.</p></div>
 
   <div class="oculto" id="painel">
+    <div class="titulo-secao">Painel da administração</div>
+    <div class="abas" style="grid-template-columns:repeat(4,1fr)" id="abasAdmin">
+      <button type="button" class="sel" data-aba="verif">Verificações</button>
+      <button type="button" data-aba="membros">Membros</button>
+      <button type="button" data-aba="planos">Planos</button>
+      <button type="button" data-aba="destaques">Destaques</button>
+    </div>
+
+    <!-- MEMBROS -->
+    <div class="oculto" id="abaMembros">
+      <div class="cartao">
+        <h1>Membros</h1>
+        <p class="suave">Busque pelo apelido. Aqui você dá <b>privilégio</b> (isento de mensalidade), soma dias de acesso, suspende ou bane.</p>
+        <input type="search" id="mBusca" placeholder="Apelido…" maxlength="24">
+        <div class="chips" style="margin-top:8px" id="mFiltro">
+          <div class="chip sel" data-f="">Todos</div>
+          <div class="chip" data-f="pendente">Aguardando verificação</div>
+          <div class="chip" data-f="suspenso">Suspensos</div>
+          <div class="chip" data-f="isento">Isentos</div>
+        </div>
+      </div>
+      <div class="lista-pessoas" id="mLista"></div>
+    </div>
+
+    <!-- PLANOS -->
+    <div class="oculto" id="abaPlanos">
+      <div class="cartao">
+        <h1>Planos</h1>
+        <p class="suave">Altere nome, dias e valor. Desmarque "ativo" para esconder um plano.</p>
+        <div id="pLista"></div>
+        <div class="msg" id="pMsg"></div>
+      </div>
+    </div>
+
+    <!-- DESTAQUES -->
+    <div class="oculto" id="abaDestaques">
+      <div class="cartao">
+        <h1>Faixas de destaque</h1>
+        <p class="suave">Aparecem no topo da tela inicial (ex.: festa da E-Club). O link pode ser um site (https://…) ou uma página do sistema.</p>
+        <div id="dLista"></div>
+        <h2 style="margin-top:14px">Nova faixa</h2>
+        <input type="text" id="dTitulo" maxlength="80" placeholder="Título (ex.: 🎉 Halloween E-Club · Sáb 31)">
+        <input type="text" id="dSub" maxlength="120" placeholder="Subtítulo (ex.: Lista vip até 23h, clique aqui)" style="margin-top:6px">
+        <input type="text" id="dLink" maxlength="300" placeholder="Link (opcional) — https://…" style="margin-top:6px">
+        <button class="btn" id="dAdd" type="button" style="margin-top:8px">Adicionar faixa</button>
+        <div class="msg" id="dMsg"></div>
+      </div>
+    </div>
+
+    <div id="abaVerif">
     <div class="cartao">
       <h1>Verificações para analisar <span class="selo" id="qtd">0</span></h1>
       <p class="suave">Confira: o <b>código</b> no papel é igual ao da tela? O <b>rosto</b> da selfie bate com o documento? A <b>data de nascimento</b> do documento é a mesma do cadastro e dá 18 anos ou mais? Se for casal, aparecem <b>os dois</b> na selfie?</p>
@@ -32,6 +75,7 @@
     </div>
     <div id="lista"></div>
     <div class="cartao oculto" id="vazio"><p>Nenhuma verificação esperando. ✓</p></div>
+    </div>
   </div>
 </main>
 
@@ -68,11 +112,11 @@
   </div>
 </template>
 
-<footer>admin.html v1.0</footer>
+<footer>admin.html v2.0</footer>
 
 <script src="config.js?v=1.1"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
-<script src="base.js?v=1.0"></script>
-<script src="admin.js?v=1.0"></script>
+<script src="base.js?v=2.0"></script>
+<script src="admin.js?v=2.0"></script>
 </body>
 </html>

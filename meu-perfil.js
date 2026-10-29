@@ -1,18 +1,80 @@
-// meu-perfil.js — v1.0 — editar perfil, fotos, álbum privado e bloqueios
+// meu-perfil.js — v2.0 — editar perfil (com detalhes Ele/Ela), fotos, álbum privado e bloqueios
 (async function () {
   'use strict';
-  const { sb, $, msg, formacao, links, definirMarca, fotoProtegida, gradeFotos, abrirVisor,
-          prepararFoto, menu, exigirLogin, UFS } = window.BASE;
+  const { sb, $, msg, formacao, links, fotoProtegida, gradeFotos, sexos,
+          prepararFoto, moldura, exigirMembro, UFS, CAMPOS } = window.BASE;
 
-  const { perfil: eu } = await exigirLogin();
-  if (eu.status !== 'aprovado') { location.replace('verificacao.html'); return; }
-  definirMarca(eu);
-  menu(eu);
+  const { perfil: eu, assinatura } = await exigirMembro();
+  moldura(eu, assinatura, 'perfil');
 
-  $('txtApelido').textContent = eu.apelido;
-  $('txtTipo').textContent = formacao(eu);
-  $('txtNumero').textContent = 'Membro nº ' + eu.numero;
-  if (eu.tipo === 'casal') $('tSobre').textContent = 'Sobre nós';
+  $('txtApelido').append(sexos(eu), ' ' + eu.apelido);
+  $('txtTipo').textContent = formacao(eu) + ' · ' + eu.cidade + ' . ' + eu.uf;
+  $('txtNumero').textContent = '👑 Nº ' + eu.numero;
+  $('linkPrevia').href = 'perfil.html?id=' + encodeURIComponent(eu.id) + '&previa=1';
+  sb.rpc('numeros_perfil', { p_id: eu.id }).then(({ data }) => {
+    const n = (data && data[0]) || {};
+    $('nSeguidores').textContent = n.seguidores || 0; $('nSeguindo').textContent = n.seguindo || 0; $('nPosts').textContent = n.publicacoes || 0;
+  });
+
+  // ---------- Detalhes (Ele / Ela, preferências) ----------
+  const det = JSON.parse(JSON.stringify(eu.detalhes || {}));
+  const novoEl = (tag, cls, texto) => { const e = document.createElement(tag); if (cls) e.className = cls; if (texto != null) e.textContent = texto; return e; };
+  function seletor(valor, opcoes, aoMudar) {
+    const s = novoEl('select'); s.appendChild(new Option('—', ''));
+    opcoes.forEach(o => s.appendChild(new Option(o, o)));
+    s.value = valor || ''; s.addEventListener('change', () => aoMudar(s.value)); return s;
+  }
+  // Interesse
+  const interesse = new Set(Array.isArray(det.interesse) ? det.interesse : []);
+  CAMPOS.interesse.forEach(v => {
+    const c = novoEl('div', 'chip', v); c.classList.toggle('sel', interesse.has(v));
+    c.addEventListener('click', () => { interesse.has(v) ? interesse.delete(v) : interesse.add(v); c.classList.toggle('sel', interesse.has(v)); });
+    $('eInteresse').appendChild(c);
+  });
+  // Estado civil / filhos
+  CAMPOS.geral.forEach(([k, rot, ops]) => {
+    const w = novoEl('div'); w.appendChild(novoEl('label', 'campo', rot));
+    w.appendChild(seletor(det[k], ops, v => { det[k] = v || undefined; })); $('eGeral').appendChild(w);
+  });
+  // Casal: liberado para sair sozinho
+  if (eu.tipo === 'casal') {
+    $('eLiberdade').classList.remove('oculto');
+    [[1, eu.sexo_1], [2, eu.sexo_2]].forEach(([n, sx]) => {
+      const l = novoEl('label', 'chip'); l.style.display = 'inline-flex'; l.style.gap = '6px'; l.style.marginRight = '6px';
+      const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!det['sai_sozinho_' + n];
+      cb.addEventListener('change', () => { det['sai_sozinho_' + n] = cb.checked || undefined; });
+      l.append(cb, (sx === 'M' ? 'Ele é liberado' : 'Ela é liberada') + ' para sair sozinh' + (sx === 'M' ? 'o' : 'a'));
+      $('eLiberdade').appendChild(l);
+    });
+  }
+  // Ele / Ela
+  function blocoPessoa(n, sx) {
+    det['p' + n] = det['p' + n] || {};
+    const info = det['p' + n];
+    const box = novoEl('div', 'cartao'); box.style.margin = '0'; box.style.background = 'var(--cartao2)';
+    box.appendChild(novoEl('h2', null, eu.tipo === 'casal' ? (sx === 'M' ? 'Ele' : 'Ela') + (eu.sexo_1 === eu.sexo_2 ? ' ' + n : '') : 'Sobre mim'));
+    CAMPOS.pessoa.forEach(([k, rot, ops]) => {
+      box.appendChild(novoEl('label', 'campo', rot));
+      if (ops === 'numero') {
+        const i = document.createElement('input'); i.type = 'number'; i.min = k === 'altura' ? 120 : 35; i.max = k === 'altura' ? 230 : 250;
+        i.value = info[k] || ''; i.addEventListener('input', () => { const v = parseInt(i.value, 10); info[k] = (v >= +i.min && v <= +i.max) ? v : undefined; });
+        box.appendChild(i);
+      } else box.appendChild(seletor(info[k], ops, v => { info[k] = v || undefined; }));
+    });
+    $('ePessoas').appendChild(box);
+  }
+  blocoPessoa(1, eu.sexo_1);
+  if (eu.tipo === 'casal') blocoPessoa(2, eu.sexo_2); else $('ePessoas').classList.add('um');
+  // Práticas
+  det.praticas = det.praticas || {};
+  CAMPOS.praticas.forEach(pr => {
+    const linha = novoEl('div', 'editor-pratica'); linha.appendChild(novoEl('span', null, pr));
+    const s = novoEl('select'); s.style.width = 'auto';
+    [['', '—'], ['sempre', 'Curte sempre'], ['vezes', 'Às vezes'], ['nao', 'Não curte']].forEach(([v, t]) => s.appendChild(new Option(t, v)));
+    s.value = det.praticas[pr] || '';
+    s.addEventListener('change', () => { if (s.value) det.praticas[pr] = s.value; else delete det.praticas[pr]; });
+    linha.appendChild(s); $('ePraticas').appendChild(linha);
+  });
 
   // ---------- Dados ----------
   UFS.forEach(u => { const o = document.createElement('option'); o.value = u; o.textContent = u; $('eUf').appendChild(o); });
@@ -33,8 +95,10 @@
     if (cidade.length < 2 || !$('eUf').value) { msg('mDados', 'erro', 'Informe cidade e UF.'); return; }
     if (!procura.size) { msg('mDados', 'erro', 'Marque quem vocês procuram.'); return; }
     $('bSalvar').disabled = true;
+    det.interesse = [...interesse];
+    const limpo = JSON.parse(JSON.stringify(det));   // tira campos vazios
     const { error } = await sb.from('perfis').update({
-      bio: $('eBio').value.trim() || null, cidade, uf: $('eUf').value, procura: [...procura]
+      bio: $('eBio').value.trim() || null, cidade, uf: $('eUf').value, procura: [...procura], detalhes: limpo
     }).eq('id', eu.id);
     $('bSalvar').disabled = false;
     msg('mDados', error ? 'erro' : 'ok', error ? 'Não foi possível salvar.' : 'Salvo ✓');
@@ -59,6 +123,7 @@
     const fotos = data || [];
     const pub = fotos.filter(f => f.album === 'publico'), priv = fotos.filter(f => f.album === 'privado');
     $('qPub').textContent = '(' + pub.length + '/40)';
+    $('nFotos').textContent = pub.length;
     $('qPriv').textContent = '(' + priv.length + '/100)';
     const opc = {
       etiqueta: f => (f.caminho === fotoPerfil ? '⭐ perfil' : ''),
@@ -166,8 +231,8 @@
       const nome = nomes[p.solicitante]; if (!nome) return;
       if (p.status === 'pendente') {
         $('listaPedidos').appendChild(pessoa(p.solicitante, nome, [
-          ['Liberar', 'sim', async () => { await sb.rpc('responder_pedido_album', { p_solicitante: p.solicitante, p_aceitar: true }); carregarAlbum(); menu(eu); }],
-          ['Recusar', '', async () => { await sb.rpc('responder_pedido_album', { p_solicitante: p.solicitante, p_aceitar: false }); carregarAlbum(); menu(eu); }]
+          ['Liberar', 'sim', async () => { await sb.rpc('responder_pedido_album', { p_solicitante: p.solicitante, p_aceitar: true }); carregarAlbum(); }],
+          ['Recusar', '', async () => { await sb.rpc('responder_pedido_album', { p_solicitante: p.solicitante, p_aceitar: false }); carregarAlbum(); }]
         ]));
       } else {
         $('listaAcessos').appendChild(pessoa(p.solicitante, nome, [
