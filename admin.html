@@ -8,7 +8,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; connect-src https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
 <title>Administração</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="estilo.css?v=2.0">
+<link rel="stylesheet" href="estilo.css?v=2.5">
 </head>
 <body>
 
@@ -19,8 +19,9 @@
 
   <div class="oculto" id="painel">
     <div class="titulo-secao">Painel da administração</div>
-    <div class="abas" style="grid-template-columns:repeat(4,1fr)" id="abasAdmin">
-      <button type="button" class="sel" data-aba="verif">Verificações</button>
+    <div class="abas" style="grid-template-columns:repeat(5,1fr)" id="abasAdmin">
+      <button type="button" class="sel" data-aba="verif">Verificar</button>
+      <button type="button" data-aba="eventos">Eventos</button>
       <button type="button" data-aba="membros">Membros</button>
       <button type="button" data-aba="planos">Planos</button>
       <button type="button" data-aba="destaques">Destaques</button>
@@ -28,6 +29,15 @@
 
     <!-- MEMBROS -->
     <div class="oculto" id="abaMembros">
+      <div class="cartao">
+        <h2 style="margin:0 0 6px">Entrada de novos membros</h2>
+        <p class="suave" style="margin:0 0 8px">Aberto: qualquer pessoa cria conta pelo site. Fechado: só entra quem receber convite por e-mail. Nos dois casos a verificação é obrigatória.</p>
+        <div class="chips" id="cadAberto">
+          <div class="chip" data-v="true">🟢 Cadastro aberto</div>
+          <div class="chip" data-v="false">🔒 Só por convite</div>
+        </div>
+        <div class="linha-acoes"><a class="btn secundario" href="convidar.html">✉️ Convidar alguém agora</a></div>
+      </div>
       <div class="cartao">
         <h1>Membros</h1>
         <p class="suave">Busque pelo apelido. Aqui você dá <b>privilégio</b> (isento de mensalidade), soma dias de acesso, suspende ou bane.</p>
@@ -50,6 +60,17 @@
         <div id="pLista"></div>
         <div class="msg" id="pMsg"></div>
       </div>
+    </div>
+
+    <!-- EVENTOS -->
+    <div class="oculto" id="abaEventos">
+      <div class="cartao">
+        <h1>Eventos</h1>
+        <p class="suave">Qualquer membro cria eventos pela tela de Eventos (📅 no topo). Aqui você escolhe o <b>Destaque da semana</b> e pode editar, ocultar ou apagar qualquer evento.</p>
+        <a class="btn" href="eventos.html?criar=evento">➕ Criar evento</a>
+      </div>
+      <div class="titulo-secao">Eventos cadastrados</div>
+      <div class="lista-pessoas" id="evLista"></div>
     </div>
 
     <!-- DESTAQUES -->
@@ -112,11 +133,11 @@
   </div>
 </template>
 
-<footer>admin.html v2.0</footer>
+<footer>admin.html v2.4</footer>
 
 <script src="config.js?v=1.1"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
-<script src="base.js?v=2.0"></script>
-<script src="admin.js?v=2.0"></script>
+<script src="base.js?v=2.5"></script>
+<script src="admin.js?v=2.3"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-/* estilo.css — v2.0 — visual padrão (claro, com modo escuro) */
+/* estilo.css — v2.5 — visual padrão estilo aplicativo (claro, com modo escuro) */
 :root{
   --marca:#c2255c; --marca2:#e64980; --marca-txt:#ffffff;
   --fundo:#eef0f3; --cartao:#ffffff; --cartao2:#f6f7f9; --linha:#e1e4e9;
@@ -244,3 +244,214 @@ footer a{color:var(--suave)}
 .numero-membro{display:inline-block;font-weight:800;color:#d9480f;background:#fff4e6;border:1px solid #ffd8a8;border-radius:8px;padding:6px 14px}
 .editor-pratica{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--linha);font-size:.9rem}
 @media (max-width:520px){ .botoes-perfil{grid-template-columns:repeat(4,1fr)} .info-pessoas{grid-template-columns:1fr} }
+
+/* =====================================================================
+   v2.1 — ESTILO APLICATIVO: sem bordas, de ponta a ponta
+   ===================================================================== */
+:root{ --raio:0px; --sombra:none; }
+html{-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+body{padding:0 0 calc(64px + env(safe-area-inset-bottom));overscroll-behavior-y:none}
+
+/* Topo colado em cima, largura total */
+.barra-topo{max-width:none;padding:0;background:none}
+.barra-topo .icones{border-radius:0;box-shadow:0 1px 6px rgba(0,0,0,.12);padding-top:env(safe-area-inset-top)}
+.barra-topo button,.barra-topo a{height:52px}
+
+/* Barra de baixo colada no rodapé, largura total */
+.barra-baixo{padding:0;pointer-events:auto}
+.barra-baixo nav{max-width:none;border:0;border-radius:0;border-top:1px solid var(--linha);box-shadow:0 -2px 10px rgba(16,24,40,.06);padding-bottom:env(safe-area-inset-bottom)}
+.barra-baixo a,.barra-baixo button{flex-direction:column;gap:2px;font-size:.72rem;height:58px}
+.barra-baixo .bolinha{position:absolute;top:5px;left:calc(50% + 8px)}
+
+/* Conteúdo: blocos brancos sem borda, separados por uma faixa fina de fundo */
+main,.conteudo{max-width:680px;margin:0 auto}
+.estreito{max-width:680px}
+.cartao,.post,.contadores,.aovivo,.abas,.acoes-postar button,.plano,.atividade,.membro,.titulo-secao{border:0;box-shadow:none;border-radius:0}
+.cartao,.post,.plano,.atividade{margin-bottom:8px}
+.destaque{border-radius:0;margin-bottom:0}
+.aovivo{margin-bottom:0;border-bottom:1px solid var(--linha)}
+.stories{background:var(--cartao);padding:12px 12px;margin-bottom:8px;scrollbar-width:none}
+.stories::-webkit-scrollbar{display:none}
+.acoes-postar{background:var(--cartao);gap:0;margin-bottom:8px;border-bottom:1px solid var(--linha)}
+.acoes-postar button{border-right:1px solid var(--linha);padding:13px 6px}
+.acoes-postar button:last-child{border-right:0}
+.abas{margin-bottom:8px}
+.titulo-secao{background:none;margin:12px 0 6px;padding:4px 12px;text-align:left}
+.contadores{margin-bottom:8px}
+
+/* Publicações de ponta a ponta (fotos encostam nas laterais) */
+.post .fotos{padding:0 0 8px;gap:2px}
+.post .fotos .f{border-radius:0}
+.post .rodape button{padding:12px}
+
+/* Grade de membros e fotos colada, estilo galeria */
+.membros{gap:2px}
+.membro .info{padding:8px 10px}
+.fotos-grade{gap:2px}
+.fotos-grade .item{border-radius:0}
+
+/* Botões e campos: cantos suaves, tamanho bom para o dedo */
+.btn{border-radius:10px;padding:14px}
+select,input[type=text],input[type=search],input[type=number],input[type=date],input[type=email],input[type=password],textarea{border-radius:10px;font-size:16px}
+.chip{padding:9px 14px}
+.lista-pessoas .pessoa{border-radius:10px}
+
+/* Menu lateral como tela cheia no celular */
+.menu-lateral .item,.menu-lateral .eu{border:0;border-radius:0;margin-bottom:1px}
+.menu-lateral .secao{border:0;background:none;margin:16px 0 6px}
+.menu-lateral{padding:0 0 30px}
+.menu-lateral .fechar{border-radius:0;height:52px;padding-top:env(safe-area-inset-top);box-sizing:content-box}
+.menu-lateral .eu{margin:0 0 1px}
+.menu-lateral .menu-rodape{padding:0 12px}
+
+/* Telas antigas (verificação) */
+.topo{padding:14px 12px}
+.foto-slot{border-radius:10px}
+
+/* Computador: mantém a coluna central do "app" com um leve contorno */
+@media (min-width:700px){
+  body{background:var(--fundo)}
+  main,.conteudo{padding:0}
+  .cartao,.post,.plano{border-radius:12px}
+  .destaque{border-radius:12px;margin:10px 0 8px}
+  .stories,.acoes-postar,.abas,.aovivo,.contadores{border-radius:12px}
+  .aovivo{margin-bottom:8px;border-bottom:0}
+  .barra-baixo nav{max-width:680px;margin:0 auto;border-radius:14px 14px 0 0}
+  .membros{gap:8px} .membro{border-radius:12px}
+}
+
+/* Celular */
+@media (max-width:699px){
+  footer{padding:0 12px}
+  .cartao{padding:14px 14px}
+  .post .cab{padding:10px 12px}
+  .info-pessoas{grid-template-columns:1fr}
+  .perfil-topo{padding-top:20px}
+  .visor{padding:0}
+  .visor canvas{border-radius:0}
+}
+
+/* =====================================================================
+   v2.2 — CHAT E RECADOS
+   ===================================================================== */
+.conversas .conv{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--cartao);border-bottom:1px solid var(--linha);text-decoration:none;color:var(--texto);cursor:pointer}
+.conversas .conv .av{position:relative;width:52px;height:52px;border-radius:50%;overflow:hidden;background:var(--cartao2);flex:0 0 52px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.conversas .conv .av canvas{width:100%;height:100%;display:block}
+.conversas .conv .av .ponto{position:absolute;right:1px;bottom:1px;width:13px;height:13px;border-radius:50%;background:#40c057;border:2px solid var(--cartao)}
+.conversas .conv .meio{flex:1;min-width:0}
+.conversas .conv .meio b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conversas .conv .meio>span{display:block;color:var(--suave);font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conversas .conv.nova .meio>span{color:var(--texto);font-weight:600}
+.conversas .conv .dir{display:flex;flex-direction:column;align-items:flex-end;gap:6px;font-size:.74rem;color:var(--suave)}
+.conversas .conv .qtd{background:var(--marca);color:#fff;border-radius:10px;min-width:20px;padding:1px 6px;text-align:center;font-weight:700;font-size:.72rem}
+
+body.em-conversa{padding-bottom:0}
+body.em-conversa .barra-baixo,body.em-conversa footer{display:none}
+.conversa{display:flex;flex-direction:column;height:calc(100dvh - 52px - env(safe-area-inset-top));max-width:680px;margin:0 auto;background:var(--fundo)}
+.conversa .cab-conv{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--cartao);border-bottom:1px solid var(--linha)}
+.conversa .cab-conv button{background:none;border:0;font-size:1.3rem;color:var(--texto);cursor:pointer;padding:4px 8px}
+.conversa .cab-conv .av{width:38px;height:38px;border-radius:50%;overflow:hidden;background:var(--cartao2);display:flex;align-items:center;justify-content:center;flex:0 0 38px}
+.conversa .cab-conv .av canvas{width:100%;height:100%}
+.conversa .cab-conv a.nome{flex:1;color:var(--texto);text-decoration:none;font-weight:700;min-width:0}
+.conversa .cab-conv a.nome small{display:block;font-weight:400;color:var(--suave);font-size:.75rem}
+.conversa .opcoes-conv{position:absolute;right:10px;top:54px;background:var(--cartao);border:1px solid var(--linha);border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.15);z-index:5;min-width:190px}
+.conversa .opcoes-conv button{display:block;width:100%;text-align:left;background:none;border:0;padding:12px 14px;font:.92rem Inter,sans-serif;color:var(--texto);cursor:pointer}
+.conversa .msgs{flex:1;overflow-y:auto;padding:12px 10px;display:flex;flex-direction:column;gap:6px;-webkit-overflow-scrolling:touch}
+.balao{max-width:78%;padding:8px 11px;border-radius:16px;line-height:1.4;font-size:.95rem;word-wrap:break-word;white-space:pre-wrap;position:relative}
+.balao.dele{align-self:flex-start;background:var(--cartao);border-bottom-left-radius:4px}
+.balao.meu{align-self:flex-end;background:var(--marca);color:#fff;border-bottom-right-radius:4px}
+.balao .hora{display:block;font-size:.68rem;opacity:.7;margin-top:3px;text-align:right}
+.balao canvas{display:block;max-width:240px;width:100%;border-radius:10px;cursor:pointer}
+.dia-conv{align-self:center;font-size:.72rem;color:var(--suave);background:var(--cartao);padding:3px 10px;border-radius:10px;margin:6px 0}
+.conversa .barra-envio{display:flex;gap:8px;align-items:flex-end;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:var(--cartao);border-top:1px solid var(--linha)}
+.conversa .barra-envio textarea{flex:1;min-height:42px;max-height:120px;border-radius:21px;padding:10px 14px;resize:none}
+.conversa .barra-envio button{flex:0 0 42px;height:42px;border-radius:50%;border:0;background:var(--marca);color:#fff;font-size:1.1rem;cursor:pointer}
+.conversa .barra-envio button.foto{background:var(--cartao2);color:var(--texto)}
+.conversa .aviso-envio{padding:12px;text-align:center;font-size:.85rem;color:var(--suave);background:var(--cartao);border-top:1px solid var(--linha)}
+
+.recado{display:flex;gap:10px;padding:12px 14px;background:var(--cartao);border-bottom:1px solid var(--linha)}
+.recado .av{width:42px;height:42px;border-radius:50%;overflow:hidden;background:var(--cartao2);flex:0 0 42px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.recado .av canvas{width:100%;height:100%}
+.recado .corpo{flex:1;min-width:0}
+.recado .corpo a{color:var(--texto);font-weight:700;text-decoration:none}
+.recado .corpo p{margin:4px 0;white-space:pre-wrap;word-wrap:break-word}
+.recado .corpo .acoes-rec{display:flex;gap:12px;font-size:.8rem}
+.recado .corpo .acoes-rec button,.recado .corpo .acoes-rec a{background:none;border:0;padding:0;color:var(--azul);font:.8rem Inter,sans-serif;cursor:pointer;font-weight:500}
+.novo-recado{display:flex;gap:8px;align-items:flex-end}
+.novo-recado textarea{min-height:44px;flex:1}
+.novo-recado .btn{width:auto;padding:12px 16px}
+.aviso-msg{position:fixed;left:10px;right:10px;top:calc(60px + env(safe-area-inset-top));z-index:80;max-width:480px;margin:0 auto;display:block;background:var(--cartao);color:var(--texto);text-decoration:none;border-radius:14px;padding:12px 14px;box-shadow:0 8px 28px rgba(0,0,0,.22);border-left:4px solid var(--marca);animation:desce .25s ease-out}
+.aviso-msg b{display:block;font-size:.92rem}
+.aviso-msg span{display:block;color:var(--suave);font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@keyframes desce{from{transform:translateY(-20px);opacity:0}to{transform:none;opacity:1}}
+
+/* =====================================================================
+   v2.4 — EVENTOS E AGENDA
+   ===================================================================== */
+.ev-card{display:block;background:var(--cartao);margin-bottom:8px;text-decoration:none;color:var(--texto)}
+.ev-card .flyer{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:linear-gradient(120deg,#5f3dc4,#c2255c 60%,#f08c00)}
+.ev-card .flyer.vazio{display:flex;align-items:center;justify-content:center;font-size:2.4rem}
+.ev-linha{display:flex;gap:12px;padding:12px 14px;align-items:flex-start}
+.ev-data{flex:0 0 52px;text-align:center;line-height:1.1}
+.ev-data small{display:block;font-size:.72rem;font-weight:700;color:var(--marca);text-transform:uppercase}
+.ev-data b{display:block;font-size:1.6rem}
+.ev-data span{display:block;font-size:.7rem;color:var(--suave);text-transform:uppercase}
+.ev-info{flex:1;min-width:0}
+.ev-info .hora{color:var(--suave);font-size:.84rem}
+.ev-info h3{margin:2px 0 4px;font-size:1.05rem;color:var(--marca)}
+.ev-info .onde{font-size:.86rem;color:var(--suave)}
+.ev-info .conta{font-size:.8rem;margin-top:6px}
+.ev-tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:6px;padding:2px 8px;margin-left:6px;background:#ebfbee;color:#2b8a3e}
+.ev-tag.talvez{background:#fff4e6;color:#d9480f}
+.ev-detalhe .flyer{width:100%;display:block;max-height:70vh;object-fit:contain;background:#000}
+.ev-respostas{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.ev-respostas button{border:1px solid var(--linha);background:var(--cartao2);border-radius:10px;padding:12px 4px;font:600 .9rem Inter,sans-serif;color:var(--texto);cursor:pointer}
+.ev-respostas button.sel{background:var(--marca);border-color:var(--marca);color:#fff}
+.ev-respostas button.sel.talvez{background:#f08c00;border-color:#f08c00}
+.quem-vai{display:flex;flex-wrap:wrap;gap:10px}
+.quem-vai a{width:64px;text-align:center;text-decoration:none;color:var(--texto);font-size:.7rem}
+.quem-vai a .av{width:56px;height:56px;margin:0 auto 3px;border-radius:50%;overflow:hidden;background:var(--cartao2);display:flex;align-items:center;justify-content:center;font-size:22px;border:2px solid var(--ok)}
+.quem-vai a .av.talvez{border-color:#f08c00}
+.quem-vai a .av canvas{width:100%;height:100%}
+.quem-vai a span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.post .ev-no-post{display:block;margin:0 0 8px;text-decoration:none;color:var(--texto);background:var(--cartao2)}
+.post .ev-no-post img{width:100%;max-height:420px;object-fit:cover;display:block}
+@media (min-width:700px){ .ev-card{border-radius:12px;overflow:hidden} }
+#abasAdmin button{font-size:.8rem;padding:12px 2px}
+input[type=datetime-local]{width:100%;background:var(--cartao);border:1px solid var(--linha);color:var(--texto);border-radius:10px;padding:10px 11px;font:16px Inter,sans-serif}
+
+/* =====================================================================
+   v2.5 — EVENTOS (modelo CRS)
+   ===================================================================== */
+.ev-atalho{display:flex;align-items:center;gap:10px;background:var(--cartao);padding:14px;margin-bottom:1px;color:var(--texto);text-decoration:none;font-weight:500}
+.ev-tipos{display:grid;gap:1px;margin-bottom:8px}
+.ev-tipos a{display:block;background:var(--cartao2);padding:12px 14px 12px 24px;color:var(--texto);text-decoration:none}
+.ev-tipos a span{display:block;color:var(--suave);font-size:.84rem}
+.ev-cab{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--cartao);padding:10px 14px;margin:8px 0 1px}
+.ev-cab select{width:auto;border:0;background:none;color:var(--azul);font-weight:600;padding:4px}
+.ev-card.destaque-semana{background:#fff9f0;border-top:3px solid #f08c00}
+:root[data-tema="escuro"] .ev-card.destaque-semana{background:#2b2412}
+.ev-faixa{padding:10px 14px 0;font-weight:800;font-size:.82rem;color:#d9480f}
+.ev-card .flyer{aspect-ratio:auto;max-height:220px;object-fit:cover}
+.ev-info h3{color:#c77700}
+.ev-local{font-weight:700;font-size:.9rem;margin-top:2px}
+.ev-selos{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.ev-selo{font-size:.72rem;font-weight:600;padding:3px 8px;border-radius:5px;background:#868e96;color:#fff}
+.ev-selo.eu{background:#c77700}
+.ev-selo.pend{background:#f08c00}
+.ev-selo.conf{background:#2f9e44}
+.ev-selo.sec{background:#495057}
+.ev-selo.leve{background:none;color:var(--suave);padding-left:2px}
+.ev-opcoes{display:grid;gap:6px;margin:10px 0}
+.ev-opcoes label{display:grid;grid-template-columns:22px 1fr;gap:2px 8px;align-items:start;background:var(--cartao2);border:1px solid var(--linha);border-radius:10px;padding:10px 12px;cursor:pointer}
+.ev-opcoes label input{grid-row:span 2;width:18px;height:18px;margin-top:2px;accent-color:var(--marca)}
+.ev-opcoes label b{font-size:.86rem}
+.ev-opcoes label span{font-size:.8rem;color:var(--suave)}
+.ev-opcoes label:has(input:checked){border-color:var(--marca);background:#fff0f6}
+:root[data-tema="escuro"] .ev-opcoes label:has(input:checked){background:#3a1426}
+.ev-opcoes label:has(input:disabled){opacity:.75;cursor:default}
+.ev-barra-dono{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;flex-wrap:wrap}
+.ev-barra-dono span{display:flex;gap:14px}
+.av-mini{width:42px;height:42px;border-radius:50%;overflow:hidden;background:var(--cartao2);display:flex;align-items:center;justify-content:center;flex:0 0 42px}
+.av-mini canvas{width:100%;height:100%}
+input[type=date]{font-size:16px}
