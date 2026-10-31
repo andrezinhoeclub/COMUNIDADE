@@ -1,4 +1,4 @@
-// verificacao.js — v1.0 — selfie com código + documento
+// verificacao.js — v1.1 — selfie com código + documento
 (async function () {
   'use strict';
   const { sb, $, msg, prepararFoto, exigirLogin } = window.BASE;

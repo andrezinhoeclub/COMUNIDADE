@@ -8,7 +8,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; connect-src https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
 <title>Administração</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="estilo.css?v=2.5">
+<link rel="stylesheet" href="estilo.css?v=3.0">
 </head>
 <body>
 
@@ -40,13 +40,14 @@
       </div>
       <div class="cartao">
         <h1>Membros</h1>
-        <p class="suave">Busque pelo apelido. Aqui você dá <b>privilégio</b> (isento de mensalidade), soma dias de acesso, suspende ou bane.</p>
+        <p class="suave">Busque pelo apelido. Aqui você <b>isenta da mensalidade</b>, soma dias de acesso, escolhe quem é <b>admin</b>, suspende ou bane. Todo membro novo ganha 7 dias de acesso completo depois de aprovado; depois, quem não paga usa só 5 minutos por dia.</p>
         <input type="search" id="mBusca" placeholder="Apelido…" maxlength="24">
         <div class="chips" style="margin-top:8px" id="mFiltro">
           <div class="chip sel" data-f="">Todos</div>
           <div class="chip" data-f="pendente">Aguardando verificação</div>
           <div class="chip" data-f="suspenso">Suspensos</div>
           <div class="chip" data-f="isento">Isentos</div>
+          <div class="chip" data-f="admin">Admins</div>
         </div>
       </div>
       <div class="lista-pessoas" id="mLista"></div>
@@ -56,9 +57,14 @@
     <div class="oculto" id="abaPlanos">
       <div class="cartao">
         <h1>Planos</h1>
-        <p class="suave">Altere nome, dias e valor. Desmarque "ativo" para esconder um plano.</p>
+        <p class="suave">Altere nome, dias e valor. Desmarque "ativo" para esconder um plano. Em cada plano, cole o <b>link de pagamento</b> do produto na Krowk e use a <b>URL do webhook</b> que aparece embaixo (uma por plano).</p>
         <div id="pLista"></div>
         <div class="msg" id="pMsg"></div>
+      </div>
+      <div class="cartao">
+        <h2 style="margin:0 0 4px">Pagamentos recebidos (Krowk)</h2>
+        <p class="suave" style="margin:0 0 8px">Cada pagamento aprovado soma os dias do plano no membro com o mesmo e-mail. Se a pessoa pagou com outro e-mail, digite o nº dela e toque em Liberar. Reembolso e chargeback tiram os dias sozinhos.</p>
+        <div class="lista-pessoas" id="pgLista"></div>
       </div>
     </div>
 
@@ -133,11 +139,11 @@
   </div>
 </template>
 
-<footer>admin.html v2.4</footer>
+<footer>admin.html v2.9</footer>
 
 <script src="config.js?v=1.1"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
-<script src="base.js?v=2.5"></script>
-<script src="admin.js?v=2.3"></script>
+<script src="base.js?v=2.7"></script>
+<script src="admin.js?v=2.7"></script>
 </body>
 </html>

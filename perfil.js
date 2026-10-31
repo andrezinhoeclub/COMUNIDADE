@@ -1,4 +1,4 @@
-// perfil.js — v2.0 — perfil de um membro (layout em cartão central)
+// perfil.js — v2.3 — perfil de um membro (layout em cartão central)
 (async function () {
   'use strict';
   const { sb, $, msg, idades, visto, avatar, sexos, gradeFotos, moldura, exigirMembro, emBreve, toast,
@@ -34,7 +34,7 @@
   $('txtCidade').textContent = p.cidade + ' . ' + p.uf;
 
   const anos = Math.max(0, Math.floor((Date.now() - new Date(p.criado_em).getTime()) / (365.25 * 86400000)));
-  const badge = (t, cls, alvo) => (alvo || $('badges')).appendChild(el('span', 'badge ' + (cls || ''), t));
+  const badge = (t, cls, alvo) => (alvo || $('badges')).appendChild(el('span', 'badge ' + (cls || ''), t));  // devolve o elemento
   if (p.verificado) badge('✓ Maioridade Verificada', 'verde');
   badge('👑 ' + (anos >= 1 ? anos + (anos === 1 ? ' Ano' : ' Anos') : 'Novo') + ' na comunidade', 'ouro');
   const nomePessoa = (sx, n) => (p.tipo !== 'casal' ? '' : (sx === 'M' ? 'Ele' : 'Ela') + (p.sexo_1 === p.sexo_2 ? ' ' + n : '') + ': ');
@@ -58,8 +58,17 @@
     $('bSeguir').classList.toggle('on', !!n.sigo);
     $('bSeguir').lastElementChild.textContent = n.sigo ? 'Seguindo' : 'Seguir';
     $('bSeguir').firstElementChild.textContent = n.sigo ? '✓' : '➕';
+    if (n.convidados && !$('bConvidados')) { const b = badge('✉️ ' + n.convidados + (n.convidados === 1 ? ' Convidado' : ' Convidados'), 'azul'); b.id = 'bConvidados'; }
+    if (n.padrinho_apelido) {
+      $('txtPadrinho').textContent = 'Padrinho: ';
+      const a = el('a', null, n.padrinho_apelido); a.href = 'perfil.html?id=' + encodeURIComponent(n.padrinho);
+      $('txtPadrinho').appendChild(a);
+    }
   }
   numeros();
+  sb.rpc('eventos_na_agenda', { p_id: id }).then(({ data }) => {
+    if (data) { const b = badge('📅 ' + data + (data === 1 ? ' Evento na Agenda' : ' Eventos na Agenda'), 'azul'); b.style.cursor = 'default'; }
+  });
   $('bSeguir').addEventListener('click', async () => {
     $('bSeguir').disabled = true;
     const { data, error } = await sb.rpc('alternar_seguir', { p_membro: id });
@@ -154,6 +163,21 @@
     mostrarAlbum();
   });
   mostrarAlbum();
+
+  // ---------- Recados ----------
+  $('bChat').href = 'chat.html?com=' + encodeURIComponent(id);
+  const mural = window.FEED.recados($('mural'), id, eu);
+  $('bRecado').addEventListener('click', () => setTimeout(() => $('rTexto').focus(), 300));
+  if (location.hash === '#recados') setTimeout(() => { $('recados').scrollIntoView({ block: 'start' }); $('rTexto').focus(); }, 600);
+  $('rEnviar').addEventListener('click', async () => {
+    const texto = $('rTexto').value.trim();
+    if (!texto) { msg('mRecado', 'erro', 'Escreva o recado.'); return; }
+    $('rEnviar').disabled = true;
+    const { error } = await sb.from('recados').insert({ perfil: id, autor: eu.id, texto });
+    $('rEnviar').disabled = false;
+    if (error) { msg('mRecado', 'erro', /Limite/.test(error.message) ? error.message : 'Não foi possível enviar o recado.'); return; }
+    $('rTexto').value = ''; msg('mRecado', 'ok', 'Recado enviado ✓'); mural.recarregar();
+  });
 
   // ---------- Publicações ----------
   window.FEED.lista($('publicacoes'), eu, 'autor', id, 'Nenhuma publicação ainda.');

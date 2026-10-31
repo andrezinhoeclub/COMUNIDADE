@@ -1,4 +1,4 @@
-// base.js — v2.0 — conexão com o banco, moldura (topo, menu, barra de baixo) e funções comuns
+// base.js — v2.7 — conexão com o banco, moldura (topo, menu, barra de baixo) e funções comuns
 (function () {
   'use strict';
   const A = window.APP || {};
@@ -45,7 +45,7 @@
     const { data: { user } } = await sb.auth.getUser();
     if (!user) { location.replace('entrar.html'); throw new Error('sem login'); }
     const { data: perfil } = await sb.from('perfis')
-      .select('id, numero, apelido, tipo, sexo_1, sexo_2, status, verificado, foto_perfil, cidade, uf, bio, procura, isento, acesso_ate, detalhes')
+      .select('id, numero, apelido, tipo, sexo_1, sexo_2, status, verificado, foto_perfil, cidade, uf, bio, procura, isento, acesso_ate, detalhes, msg_so_quem_sigo')
       .eq('id', user.id).maybeSingle();
     if (!perfil) { await sair(); throw new Error('sem perfil'); }
     return { user, perfil };
@@ -200,7 +200,7 @@
   function pref(chave, padrao) { try { return localStorage.getItem('pref_' + chave) || padrao; } catch (e) { return padrao; } }
   function salvarPref(chave, valor) { try { localStorage.setItem('pref_' + chave, valor); } catch (e) {} aplicarPrefs(); }
   function aplicarPrefs() {
-    const escuro = pref('escuro', 'desliga');
+    const escuro = pref('escuro', 'liga');
     const h = new Date().getHours();
     const ligar = escuro === 'liga' || (escuro === 'noite' && (h >= 19 || h < 7));
     document.documentElement.dataset.tema = ligar ? 'escuro' : 'claro';
@@ -208,6 +208,24 @@
     if (document.body) document.body.classList.toggle('discreta', pref('discreta', 'desligada') === 'ligada');
   }
   aplicarPrefs();
+
+  // ---------- Aparência de aplicativo (instalar na tela inicial) ----------
+  (function modoApp() {
+    const add = (tag, attrs) => { const e = document.createElement(tag); Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v)); document.head.appendChild(e); };
+    if (!document.querySelector('link[rel=manifest]')) add('link', { rel: 'manifest', href: 'manifest.json' });
+    const tc = document.querySelector('meta[name=theme-color]'); if (tc) tc.content = '#0b0a09'; else add('meta', { name: 'theme-color', content: '#0b0a09' });
+    add('meta', { name: 'mobile-web-app-capable', content: 'yes' });
+    add('meta', { name: 'apple-mobile-web-app-capable', content: 'yes' });
+    add('meta', { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' });
+    add('meta', { name: 'apple-mobile-web-app-title', content: 'Comunidade' });
+    add('link', { rel: 'apple-touch-icon', href: 'icone-180.png' });
+    add('link', { rel: 'icon', type: 'image/png', href: 'favicon-64.png' });
+    // App instalável: registra o service worker (não guarda dados pessoais, só a tela de "sem internet")
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+  })();
+
+  // Endereço público do flyer de um evento
+  const flyer = (caminho) => caminho ? sb.storage.from('eventos').getPublicUrl(caminho).data.publicUrl : null;
 
   // ---------- Pequenas utilidades ----------
   function toast(texto) {
@@ -251,9 +269,54 @@
     if (perfil.status !== 'aprovado') { location.replace('verificacao.html'); throw new Error('nao aprovado'); }
     const { data: ass } = await sb.rpc('minha_assinatura');
     const assinatura = (ass && ass[0]) || { ativa: false };
-    if (!assinatura.ativa && !o.semAssinatura) { location.replace('planos.html'); throw new Error('sem assinatura'); }
+    if (!assinatura.ativa && !o.semAssinatura) {
+      // Sem assinatura: usa o tempo grátis do dia (o servidor conta e corta)
+      const r = await tempoGratis();
+      if (!r || r.restante <= 0) { location.replace('planos.html?tempo=acabou'); throw new Error('tempo acabou'); }
+      assinatura.gratis = r;
+    }
     definirMarca(perfil);
     return { user, perfil, assinatura };
+  }
+
+  // ---------- Tempo grátis diário (quem não é assinante) ----------
+  let relogio = null, fimTempo = 0, pingTimer = null;
+  async function avisarUso(pausa) {
+    const { data, error } = await sb.rpc('registrar_uso', { p_pausa: !!pausa });
+    if (error || !data || !data[0]) return null;
+    return data[0];
+  }
+  function tempoAcabou() { location.replace('planos.html?tempo=acabou'); }
+  function desenharRelogio() {
+    if (!relogio) return;
+    const s = Math.max(0, Math.round((fimTempo - Date.now()) / 1000));
+    relogio.querySelector('b').textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+    relogio.classList.toggle('acabando', s <= 60);
+    if (s <= 0) tempoAcabou();
+  }
+  async function tempoGratis() {
+    const r = await avisarUso(false);
+    if (!r || r.ilimitado) return r ? { restante: Infinity } : null;
+    fimTempo = Date.now() + r.restante * 1000;
+    if (r.restante > 0 && !relogio) {
+      relogio = document.createElement('a');
+      relogio.className = 'tempo-gratis'; relogio.href = 'planos.html';
+      relogio.innerHTML = '⏱ Tempo grátis hoje: <b></b> · <u>Assinar</u>';
+      document.body.appendChild(relogio);
+      setInterval(desenharRelogio, 1000);
+      const ping = async () => {
+        if (document.hidden) return;
+        const x = await avisarUso(false);
+        if (x && !x.ilimitado) { fimTempo = Date.now() + x.restante * 1000; if (x.restante <= 0) tempoAcabou(); }
+      };
+      pingTimer = setInterval(ping, 20000);
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) avisarUso(true); else ping();
+      });
+      window.addEventListener('pagehide', () => { avisarUso(true); });
+    }
+    desenharRelogio();
+    return r;
   }
 
   // ---------- Ícones ----------
@@ -286,9 +349,22 @@
     escudo: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>',
     ajuda: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 015 0c0 1.8-2.5 2-2.5 4M12 17h.01"/>',
     admin: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+    baixar: '<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M12 7v7M9 11l3 3 3-3M10 18h4"/>',
     sair: '<path d="M14 4h5v16h-5M10 8l-4 4 4 4M6 12h10"/>'
   };
   function icone(nome) { return '<svg viewBox="0 0 24 24" aria-hidden="true">' + (ICONE[nome] || '') + '</svg>'; }
+
+  // Aviso de mensagem nova (aparece no alto da tela; tocar abre a conversa)
+  function avisoMensagem(apelido, de, texto) {
+    document.querySelectorAll('.aviso-msg').forEach(x => x.remove());
+    const a = document.createElement('a');
+    a.className = 'aviso-msg'; a.href = 'chat.html?com=' + encodeURIComponent(de);
+    const b = document.createElement('b'); b.textContent = '💬 ' + apelido;
+    const t = document.createElement('span'); t.textContent = texto ? texto.slice(0, 80) : '📷 Foto';
+    a.append(b, t); document.body.appendChild(a);
+    try { if (navigator.vibrate) navigator.vibrate(120); } catch (e) {}
+    setTimeout(() => a.remove(), 6000);
+  }
 
   // ---------- Moldura das telas: topo, menu lateral e barra de baixo ----------
   // ativo: 'sigame' | 'ultimas' | 'radar' | 'perfil' | 'busca' | ...
@@ -298,9 +374,9 @@
       icone(n) + '<span class="bolinha" id="b_' + n + '"></span></' + (href ? 'a' : 'button') + '>';
 
     const topo = document.createElement('div'); topo.className = 'barra-topo';
-    topo.innerHTML = '<div class="icones">' +
-      pag('menu', 'Menu') + pag('agenda', 'Eventos') + pag('perfil', 'Meu perfil', 'meu-perfil.html') +
-      pag('recado', 'Recados') + pag('chat', 'Chat') + pag('camera', 'Publicar foto', 'inicio.html?postar=foto') +
+    topo.innerHTML = '<div class="icones"><a class="marca-app" href="inicio.html" aria-label="Início"><img src="logo-ouro.png" alt=""><span>Comunidade</span><i>Liberal</i></a>' +
+      pag('menu', 'Menu') + pag('agenda', 'Eventos', 'eventos.html') + pag('perfil', 'Meu perfil', 'meu-perfil.html') +
+      pag('recado', 'Recados', 'recados.html') + pag('chat', 'Mensagens', 'chat.html') + pag('camera', 'Publicar foto', 'inicio.html?postar=foto') +
       pag('busca', 'Buscar membros', 'aovivo.html?busca=1') + '</div>';
     document.body.prepend(topo);
 
@@ -321,6 +397,35 @@
     sb.from('album_pedidos').select('solicitante', { count: 'exact', head: true })
       .eq('dono', perfil.id).eq('status', 'pendente')
       .then(({ count }) => { if (count) $('b_perfil').textContent = count; });
+
+    // Avisos: mensagens não lidas e recados novos
+    async function avisos() {
+      const { data } = await sb.rpc('meus_avisos');
+      const a = (data && data[0]) || {};
+      $('b_chat').textContent = a.mensagens ? (a.mensagens > 99 ? '99+' : a.mensagens) : '';
+      $('b_recado').textContent = a.recados ? (a.recados > 99 ? '99+' : a.recados) : '';
+      const total = (a.mensagens || 0) + (a.recados || 0);
+      document.title = document.title.replace(/^\(\d+\+?\) /, '');
+      if (total) document.title = '(' + total + ') ' + document.title;
+    }
+    window.BASE.avisos = avisos;
+    avisos();
+    setInterval(() => { if (!document.hidden) avisos(); }, 60000);
+    // Mensagem nova chega na hora (tempo real)
+    try {
+      sb.channel('avisos-' + perfil.id)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensagens', filter: 'para=eq.' + perfil.id },
+            async (ev) => {
+              avisos();
+              document.dispatchEvent(new CustomEvent('mensagem-nova'));
+              // Aviso na tela (fora da conversa aberta)
+              const naConversa = /chat\.html/.test(location.pathname) && new URLSearchParams(location.search).get('com') === ev.new.de;
+              if (naConversa) return;
+              const { data: q } = await sb.from('perfis_publicos').select('apelido').eq('id', ev.new.de).maybeSingle();
+              avisoMensagem((q && q.apelido) || 'um membro', ev.new.de, ev.new.texto);
+            })
+        .subscribe();
+    } catch (e) {}
 
     // "Estou online" a cada 4 minutos
     sb.rpc('registrar_acesso');
@@ -374,19 +479,19 @@
       assinatura.admin ? etiqueta('administração') : assinatura.isento ? etiqueta('isento') :
       assinatura.ativa ? etiqueta(assinatura.dias_restantes + ' dias restantes') : etiqueta('vencido', 'vencido'));
     item('olho', 'Navegação Discreta', () => {}, alternador('discreta', [['desligada', 'Desligada'], ['ligada', 'Ligada']], 'desligada'));
-    item('lua', 'Modo Escuro', () => {}, alternador('escuro', [['desliga', 'Desliga'], ['noite', 'só à noite'], ['liga', 'Liga']], 'desliga'));
+    item('lua', 'Modo Escuro', () => {}, alternador('escuro', [['desliga', 'Desliga'], ['noite', 'só à noite'], ['liga', 'Liga']], 'liga'));
     item('letra', 'Letras', () => {}, alternador('letras', [['normais', 'Normais'], ['grandes', 'Grandes']], 'normais'));
 
     secao('Minhas coisas');
-    item('recado', 'Meus Recados', null);
+    item('recado', 'Meus Recados', 'recados.html');
     item('amigos', 'Meus Amigos', null);
     item('camera', 'Meu Fotolog', 'meu-perfil.html');
     item('perfil', 'Fotos de Rosto', null);
-    item('agenda', 'Minha Agenda', null);
+    item('agenda', 'Minha Agenda', 'eventos.html?aba=agenda');
     item('estrela', 'Meus Depoimentos', null);
     item('coracao', 'Minhas Paqueras', null);
     item('nota', 'Minhas Anotações', null);
-    item('convite', 'Convidar Amigos', null);
+    item('convite', 'Convidar Amigos', 'convidar.html');
 
     secao('Ferramentas');
     item('amigos', 'Meus Seguidores', null);
@@ -395,7 +500,7 @@
     item('radar', 'Radar', 'aovivo.html');
     item('forum', 'Fórum', null);
     item('grupos', 'Círculos', null);
-    item('agenda', 'Eventos', null);
+    item('agenda', 'Eventos', 'eventos.html');
     item('trofeu', 'Ranking', null);
 
     secao('Conta');
@@ -408,6 +513,7 @@
     });
     item('escudo', 'Privacidade e Segurança', 'regras.html#privacidade');
     item('ajuda', 'Ajuda e Regras', 'regras.html');
+    const inst = item('baixar', 'Instalar o App no celular', 'instalar.html'); inst.classList.add('instalar');
     item('chat', 'Falar com a Administração', null);
     if (assinatura.admin) item('admin', 'Painel da Administração', 'admin.html');
     const s = item('sair', 'SAIR', sair); s.classList.add('sair');
@@ -457,7 +563,7 @@
 
   window.BASE = { sb, $, msg, idade, dataBR, formacao, exigirLogin, exigirMembro, sair, prepararFoto,
                   links, definirMarca, moldura, abrirVisor, gradeFotos, fotoProtegida, visto, idades, tempo,
-                  sexos, avatar, toast, emBreve, icone, CAMPOS, signo, mesDe, UFS, NOME_TIPO, NOME: A.NOME };
+                  sexos, avatar, toast, emBreve, icone, flyer, CAMPOS, signo, mesDe, UFS, NOME_TIPO, NOME: A.NOME };
 
   // Nome da comunidade no topo e no título
   document.addEventListener('DOMContentLoaded', () => {

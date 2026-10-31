@@ -1,4 +1,4 @@
-// admin.js — v2.3 — verificações, membros (privilégios), planos e destaques
+// admin.js — v2.7 — verificações, membros (privilégios), planos e destaques
 (async function () {
   'use strict';
   const { sb, $, msg, idade, dataBR, formacao, exigirLogin, exigirMembro, moldura, toast } = window.BASE;
@@ -45,11 +45,16 @@
 
   async function carregarMembros() {
     carregarCadastro();
-    let q = sb.from('perfis').select('id, numero, apelido, tipo, sexo_1, sexo_2, cidade, uf, status, isento, acesso_ate, criado_em')
+    let q = sb.from('perfis').select('id, numero, apelido, tipo, sexo_1, sexo_2, cidade, uf, status, isento, acesso_ate, teste_ate, criado_em')
       .order('criado_em', { ascending: false }).limit(50);
     const busca = $('mBusca').value.trim().replace(/[%_\\,()]/g, '');
     if (busca) q = q.ilike('apelido', '%' + busca + '%');
-    if (filtroM === 'isento') q = q.eq('isento', true); else if (filtroM) q = q.eq('status', filtroM);
+    const { data: adms } = await sb.from('admins').select('user_id, criado_em').order('criado_em');
+    const ADM = new Set((adms || []).map(x => x.user_id));
+    const dono = adms && adms[0] ? adms[0].user_id : null;
+    if (filtroM === 'isento') q = q.eq('isento', true);
+    else if (filtroM === 'admin') q = q.in('id', [...ADM].length ? [...ADM] : ['00000000-0000-0000-0000-000000000000']);
+    else if (filtroM) q = q.eq('status', filtroM);
     const { data, error } = await q;
     $('mLista').innerHTML = '';
     if (error) { $('mLista').textContent = 'Erro: ' + error.message; return; }
@@ -59,19 +64,27 @@
       const info = novoEl('div');
       const a = novoEl('a', null, m.apelido + ' · nº ' + m.numero); a.href = 'perfil.html?id=' + encodeURIComponent(m.id);
       const ativo = m.isento || (m.acesso_ate && new Date(m.acesso_ate) > new Date());
-      const situ = m.isento ? '👑 isento' : (m.acesso_ate ? (ativo ? 'acesso até ' : 'venceu em ') + new Date(m.acesso_ate).toLocaleDateString('pt-BR') : 'sem assinatura');
+      const emTeste = !m.isento && m.teste_ate && new Date(m.teste_ate) > new Date() && m.acesso_ate && new Date(m.acesso_ate) > new Date() && new Date(m.acesso_ate) <= new Date(new Date(m.teste_ate).getTime() + 60000);
+      const situ = ADM.has(m.id) ? '🛡️ admin' : m.isento ? '👑 isento (sem mensalidade)' :
+        emTeste ? '🎁 teste grátis até ' + new Date(m.acesso_ate).toLocaleDateString('pt-BR') : (m.acesso_ate ? (ativo ? 'acesso até ' : 'venceu em ') + new Date(m.acesso_ate).toLocaleDateString('pt-BR') : 'sem assinatura');
       info.append(a, novoEl('div', 'suave', formacao(m) + ' · ' + m.cidade + '/' + m.uf + ' · ' + m.status + ' · ' + situ));
       const bt = novoEl('div', 'botoes');
-      const botao = (t, cls, acao) => { const b = novoEl('button', cls, t); b.type = 'button'; b.addEventListener('click', async () => { b.disabled = true; await acao(); carregarMembros(); }); bt.appendChild(b); };
+      const botao = (t, cls, acao) => { const b = novoEl('button', cls, t); b.type = 'button'; b.addEventListener('click', async () => { b.disabled = true; const r = await acao(); if (r === false) { b.disabled = false; return; } carregarMembros(); }); bt.appendChild(b); };
       const rpc = async (isento, dias) => { const { error: e } = await sb.rpc('admin_definir_acesso', { p_id: m.id, p_isento: isento, p_somar_dias: dias }); toast(e ? 'Erro: ' + e.message : 'Feito ✓'); };
       const status = async (st) => { const { error: e } = await sb.from('perfis').update({ status: st }).eq('id', m.id); toast(e ? 'Erro: ' + e.message : 'Feito ✓'); };
-      botao(m.isento ? 'Tirar privilégio' : '👑 Isentar', m.isento ? '' : 'sim', () => rpc(!m.isento, 0));
-      botao('+30 dias', '', () => rpc(null, 30));
+      const confirmar = (texto) => { if (linha.dataset.confirma === texto) return true; linha.dataset.confirma = texto; toast(texto); setTimeout(() => delete linha.dataset.confirma, 5000); return false; };
+      const admin = async (sim) => { const { error: e } = await sb.rpc('admin_definir_admin', { p_id: m.id, p_admin: sim }); toast(e ? 'Erro: ' + e.message : (sim ? m.apelido + ' agora é admin ✓' : 'Admin removido ✓')); };
+      if (!ADM.has(m.id)) botao(m.isento ? 'Voltar a cobrar' : '👑 Isentar mensalidade', m.isento ? '' : 'sim', () => rpc(!m.isento, 0));
+      if (m.status === 'aprovado' && !ADM.has(m.id)) botao('🛡️ Tornar admin', '', async () => {
+        if (!confirmar('Admin vê tudo, inclusive álbuns privados e conversas. Toque de novo para confirmar.')) return false; await admin(true); });
+      if (ADM.has(m.id) && m.id !== eu.id && m.id !== dono) botao('Tirar admin', 'nao', async () => {
+        if (!confirmar('Toque de novo em Tirar admin para confirmar.')) return false; await admin(false); });
+      botao('🎁 +30 dias grátis', '', () => rpc(null, 30));
       botao('−30 dias', '', () => rpc(null, -30));
       if (m.status === 'aprovado') botao('Suspender', '', () => status('suspenso'));
       if (m.status === 'suspenso') botao('Reativar', 'sim', () => status('aprovado'));
-      if (m.status !== 'banido') botao('Banir', 'nao', async () => {
-        if (!linha.dataset.confirma) { linha.dataset.confirma = '1'; toast('Toque em Banir de novo para confirmar.'); setTimeout(() => delete linha.dataset.confirma, 4000); return; }
+      if (m.status !== 'banido' && !ADM.has(m.id)) botao('Banir', 'nao', async () => {
+        if (!confirmar('Toque em Banir de novo para confirmar.')) return false;
         await status('banido');
       });
       linha.append(info, bt); $('mLista').appendChild(linha);
@@ -83,19 +96,68 @@
     const { data } = await sb.from('planos').select('*').order('ordem');
     $('pLista').innerHTML = '';
     (data || []).forEach(p => {
-      const l = novoEl('div', 'pessoa');
+      const l = novoEl('div', 'pessoa'); l.style.flexWrap = 'wrap';
       const nome = novoEl('input'); nome.type = 'text'; nome.value = p.nome; nome.style.maxWidth = '150px';
       const dias = novoEl('input'); dias.type = 'number'; dias.value = p.dias; dias.style.maxWidth = '90px'; dias.title = 'dias';
       const valor = novoEl('input'); valor.type = 'number'; valor.step = '0.01'; valor.value = p.valor; valor.style.maxWidth = '110px'; valor.title = 'valor R$';
       const at = novoEl('label', 'suave'); const cb = novoEl('input'); cb.type = 'checkbox'; cb.checked = p.ativo; at.append(cb, ' ativo');
+      const prod = novoEl('input'); prod.type = 'text'; prod.value = p.krowk_produto || ''; prod.maxLength = 160;
+      prod.placeholder = 'Krowk: ID ou nome exato do produto'; prod.style.cssText = 'flex:1 1 100%;margin-top:6px';
+      const link = novoEl('input'); link.type = 'text'; link.inputMode = 'url'; link.value = p.link_pagamento || ''; link.maxLength = 400;
+      link.placeholder = 'Krowk: link de pagamento (https://…)'; link.style.cssText = 'flex:1 1 100%;margin-top:6px';
       const salvar = novoEl('button', 'sim', 'Salvar'); salvar.type = 'button';
       salvar.addEventListener('click', async () => {
-        const { error } = await sb.from('planos').update({ nome: nome.value.trim(), dias: parseInt(dias.value, 10), valor: Number(valor.value), ativo: cb.checked }).eq('id', p.id);
+        const lk = link.value.trim();
+        if (lk && !/^https:\/\//.test(lk)) { msg('pMsg', 'erro', 'O link precisa começar com https://'); return; }
+        const { error } = await sb.from('planos').update({ nome: nome.value.trim(), dias: parseInt(dias.value, 10), valor: Number(valor.value), ativo: cb.checked,
+          krowk_produto: prod.value.trim() || null, link_pagamento: lk || null }).eq('id', p.id);
         msg('pMsg', error ? 'erro' : 'ok', error ? 'Erro: ' + error.message : 'Plano salvo ✓');
       });
-      l.append(nome, dias, novoEl('span', 'suave', 'dias · R$'), valor, at, salvar); $('pLista').appendChild(l);
+      const urlHook = window.APP.SUPABASE_URL + '/functions/v1/krowk?plano=' + p.id;
+      const hook = novoEl('div', 'suave'); hook.style.cssText = 'flex:1 1 100%;margin-top:6px;font-size:.82rem;word-break:break-all';
+      hook.append('Webhook deste plano na Krowk: ', novoEl('b', null, urlHook), ' ');
+      const cp = novoEl('button', '', 'Copiar'); cp.type = 'button';
+      cp.addEventListener('click', async () => { try { await navigator.clipboard.writeText(urlHook); toast('URL copiada ✓'); } catch (e) { toast('Selecione e copie a URL.'); } });
+      hook.appendChild(cp);
+      l.append(nome, dias, novoEl('span', 'suave', 'dias · R$'), valor, at, salvar, prod, link, hook); $('pLista').appendChild(l);
+    });
+    carregarPagamentos();
+  }
+
+  // Pagamentos que chegaram da Krowk
+  async function carregarPagamentos() {
+    const { data, error } = await sb.from('pagamentos')
+      .select('id, venda_id, classe, evento, email, produto, valor, situacao, dias, criado_em, perfis(apelido, numero)')
+      .order('criado_em', { ascending: false }).limit(40);
+    const box = $('pgLista'); box.innerHTML = '';
+    if (error) { box.textContent = 'Erro: ' + error.message; return; }
+    if (!data.length) { box.appendChild(novoEl('p', 'suave', 'Nenhum aviso de pagamento recebido ainda.')); return; }
+    const ROT = { liberado: '✅ liberado', removido: '↩️ dias removidos', sem_membro: '⚠️ e-mail sem conta', sem_plano: '⚠️ produto sem plano',
+                  repetido: '· aviso repetido', registrado: '· só registrado' };
+    data.forEach(g => {
+      const l = novoEl('div', 'pessoa'); l.style.flexWrap = 'wrap';
+      const info = novoEl('div');
+      const quem = (g.classe === 'teste' ? '🧪 TESTE · ' : '') + (g.perfis ? g.perfis.apelido + ' (nº ' + g.perfis.numero + ')' : (g.email || 'sem e-mail'));
+      info.append(novoEl('b', null, (ROT[g.situacao] || g.situacao) + ' · ' + quem),
+        novoEl('div', 'suave', [g.evento, g.produto, g.valor != null ? 'R$ ' + Number(g.valor).toFixed(2) : null, g.dias ? '+' + g.dias + ' dias' : null,
+          new Date(g.criado_em).toLocaleString('pt-BR')].filter(Boolean).join(' · ')));
+      l.appendChild(info);
+      if ((g.classe === 'pago' || g.classe === 'renovacao') && (g.situacao === 'sem_membro' || g.situacao === 'sem_plano')) {
+        const n = novoEl('input'); n.type = 'text'; n.inputMode = 'numeric'; n.placeholder = 'nº do membro'; n.style.maxWidth = '130px';
+        const b = novoEl('button', 'sim', 'Liberar'); b.type = 'button';
+        b.addEventListener('click', async () => {
+          const num = parseInt(n.value.replace(/\D/g, ''), 10); if (!num) { toast('Digite o nº do membro.'); return; }
+          b.disabled = true;
+          const { data: ap, error: e } = await sb.rpc('admin_atribuir_pagamento', { p_id: g.id, p_numero: num });
+          b.disabled = false;
+          toast(e ? 'Erro: ' + e.message : 'Dias liberados para ' + ap + ' ✓'); if (!e) carregarPagamentos();
+        });
+        const bt = novoEl('div', 'botoes'); bt.append(n, b); l.appendChild(bt);
+      }
+      box.appendChild(l);
     });
   }
+
 
 
   // ---------- Eventos (moderação) ----------
